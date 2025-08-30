@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState, type FC } from 'react';
+import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
 import { useKeyHold } from '../hooks/useKeyHold';
 import styles from './paddle.module.css';
 import { PLAYFIELD_HEIGHT_PX, PADDLE_HEIGHT_PX, PADDLE_SPEED_PX_PER_SEC } from '../gameConfig';
+
+export interface PaddleHandle { getState(): { centerY: number; side: 'left' | 'right' }; }
 
 export interface PaddleProps {
 	side: 'left' | 'right';
@@ -9,7 +11,7 @@ export interface PaddleProps {
 	keyMapping?: { up: string[]; down: string[] };
 }
 
-export const Paddle: FC<PaddleProps> = ({ side, ariaLabel, keyMapping }) => {
+export const Paddle = forwardRef<PaddleHandle, PaddleProps>(function Paddle({ side, ariaLabel, keyMapping }, ref) {
 	const [paddleCenterY, setPaddleCenterY] = useState(PLAYFIELD_HEIGHT_PX / 2);
 	const keyStateRef = useKeyHold(keyMapping);
 	const previousFrameTimestampRef = useRef<number | null>(null);
@@ -42,6 +44,8 @@ export const Paddle: FC<PaddleProps> = ({ side, ariaLabel, keyMapping }) => {
 
 	const topPercent = (paddleCenterY / PLAYFIELD_HEIGHT_PX) * 100;
 	const edgeClass = side === 'left' ? styles.leftEdge : styles.rightEdge;
+	useImperativeHandle(ref, () => ({ getState: () => ({ centerY: paddleCenterY, side }) }), [paddleCenterY, side]);
+
 	return (
 		<div
 			className={`${styles.paddle} ${edgeClass}`}
@@ -50,4 +54,4 @@ export const Paddle: FC<PaddleProps> = ({ side, ariaLabel, keyMapping }) => {
 			role="presentation"
 		/>
 	);
-};
+});
