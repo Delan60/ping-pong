@@ -3,21 +3,22 @@ import { useKeyHold } from '../hooks/useKeyHold';
 import styles from './paddle.module.css';
 import { PLAYFIELD_HEIGHT_PX, PADDLE_HEIGHT_PX, PADDLE_SPEED_PX_PER_SEC } from '../gameConfig';
 
-export const Paddle: FC = () => {
-	/** Center Y position of the paddle (in pixels, relative to top of playfield). */
-	const [paddleCenterY, setPaddleCenterY] = useState(PLAYFIELD_HEIGHT_PX / 2);
+export interface PaddleProps {
+	side: 'left' | 'right';
+	ariaLabel: string;
+	keyMapping?: { up: string[]; down: string[] };
+}
 
-	/** Timing refs; key state comes from reusable hook. */
-	const keyStateRef = useKeyHold();
+export const Paddle: FC<PaddleProps> = ({ side, ariaLabel, keyMapping }) => {
+	const [paddleCenterY, setPaddleCenterY] = useState(PLAYFIELD_HEIGHT_PX / 2);
+	const keyStateRef = useKeyHold(keyMapping);
 	const previousFrameTimestampRef = useRef<number | null>(null);
 	const animationFrameIdRef = useRef<number | null>(null);
 
-	/** Precomputed clamping bounds so paddle stays inside playfield. */
 	const minimumCenterY = PADDLE_HEIGHT_PX / 2;
 	const maximumCenterY = PLAYFIELD_HEIGHT_PX - PADDLE_HEIGHT_PX / 2;
 	const clampCenterY = (value: number) => Math.min(maximumCenterY, Math.max(minimumCenterY, value));
 
-	// Animation loop: converts elapsed time into movement for smooth, framerate‑independent motion.
 	useEffect(() => {
 		const step = (timestamp: number) => {
 			if (previousFrameTimestampRef.current == null) previousFrameTimestampRef.current = timestamp;
@@ -37,10 +38,16 @@ export const Paddle: FC = () => {
 		};
 		animationFrameIdRef.current = requestAnimationFrame(step);
 		return () => { if (animationFrameIdRef.current) cancelAnimationFrame(animationFrameIdRef.current); };
-	}, []);
+	}, [keyMapping]);
 
-	/** Convert current center to a percentage for positioning with translateY(-50%). */
 	const topPercent = (paddleCenterY / PLAYFIELD_HEIGHT_PX) * 100;
-
-	return <div className={styles.paddle} style={{ height: `${PADDLE_HEIGHT_PX}px`, top: `${topPercent}%` }} aria-label="player paddle" role="presentation" />;
+	const edgeClass = side === 'left' ? styles.leftEdge : styles.rightEdge;
+	return (
+		<div
+			className={`${styles.paddle} ${edgeClass}`}
+			style={{ height: `${PADDLE_HEIGHT_PX}px`, top: `${topPercent}%` }}
+			aria-label={ariaLabel}
+			role="presentation"
+		/>
+	);
 };

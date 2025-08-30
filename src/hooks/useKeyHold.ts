@@ -17,17 +17,18 @@ const DEFAULT_KEYS: { up: string[]; down: string[] } = {
  *
  * For now only up/down are exposed; left/right placeholders kept in the type for easy extension.
  */
-export function useKeyHold() {
+export function useKeyHold(customKeys?: { up: string[]; down: string[] }) {
   const stateRef = useRef<DirectionalKeyState>({ up: false, down: false });
+  const keys = customKeys ?? DEFAULT_KEYS;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (DEFAULT_KEYS.up.includes(e.key)) stateRef.current.up = true;
-      if (DEFAULT_KEYS.down.includes(e.key)) stateRef.current.down = true;
+  if (keys.up.includes(e.key)) stateRef.current.up = true;
+  if (keys.down.includes(e.key)) stateRef.current.down = true;
     };
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (DEFAULT_KEYS.up.includes(e.key)) stateRef.current.up = false;
-      if (DEFAULT_KEYS.down.includes(e.key)) stateRef.current.down = false;
+  if (keys.up.includes(e.key)) stateRef.current.up = false;
+  if (keys.down.includes(e.key)) stateRef.current.down = false;
     };
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
@@ -35,7 +36,7 @@ export function useKeyHold() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, []); // defaults are static
+  }, [keys.up, keys.down]);
 
   return stateRef;
 }

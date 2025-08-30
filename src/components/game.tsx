@@ -4,6 +4,7 @@ import { Paddle } from './paddle';
 
 export const Game: FC = () => (
   <Layout>
-    <Paddle />
+    <Paddle side="left" ariaLabel="left player paddle" />
+    <Paddle side="right" ariaLabel="right player paddle" keyMapping={{ up: ['i','I'], down: ['k','K'] }} />
   </Layout>
 );
