@@ -1,21 +1,20 @@
 import { useEffect, useRef } from 'react';
-import { PADDLE_HEIGHT_PX, PADDLE_WIDTH_PX, PLAYFIELD_WIDTH_PX, PLAYFIELD_HEIGHT_PX, BALL_SIZE_PX } from '../gameConfig';
+import { PADDLE_HEIGHT_PX, PADDLE_WIDTH_PX, PLAYFIELD_WIDTH_PX, PLAYFIELD_HEIGHT_PX } from '../gameConfig';
 import type { PaddleHandle } from '../components/paddle';
-import type { BallHandle } from '../components/ball';
+import type { BallMotionState } from './useBallMovement';
 
 /** Simple paddle-ball collision hook. Call inside Game with refs to paddles & ball. */
 export function usePaddleBallCollision(
   leftPaddleRef: React.RefObject<PaddleHandle | null>,
   rightPaddleRef: React.RefObject<PaddleHandle | null>,
-  ballRef: React.RefObject<BallHandle | null>
+  ball: BallMotionState
 ) {
   const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
     const step = () => {
-      const ball = ballRef.current?.getState();
       if (ball) {
-  let { x, y, vx, vy, radius } = ball;
+        let { x, y, vx, vy, radius } = ball;
         const left = leftPaddleRef.current?.getState();
         const right = rightPaddleRef.current?.getState();
 
@@ -55,14 +54,14 @@ export function usePaddleBallCollision(
           else if (x + radius > PLAYFIELD_WIDTH_PX) { x = PLAYFIELD_WIDTH_PX - radius; vx = -Math.abs(vx); collided = true; }
         }
 
-        if (collided && ballRef.current) {
-          ballRef.current.setPosition(x, y);
-          ballRef.current.setVelocity(vx, vy);
+        if (collided) {
+          ball.setPosition(x, y);
+          ball.setVelocity(vx, vy);
         }
       }
       rafRef.current = requestAnimationFrame(step);
     };
     rafRef.current = requestAnimationFrame(step);
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
-  }, [leftPaddleRef, rightPaddleRef, ballRef]);
+  }, [leftPaddleRef, rightPaddleRef, ball]);
 }
