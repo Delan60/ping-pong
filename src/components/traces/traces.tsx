@@ -26,9 +26,9 @@ export const Traces: React.FC<TracesProps> = ({
   return (
     <>
       {dots.map((d) => {
-        const lifeRatio = d.age / fadeMs; // 0..1
-        const size = BALL_SIZE_PX * (1 - lifeRatio * shrinkFactor);
-        const opacity = Math.max(0, baseOpacity * (1 - lifeRatio));
+        const lifeRatio = d.age / fadeMs; // 0..1 - needed to fade out older dots
+        const size = BALL_SIZE_PX * (1 - lifeRatio * shrinkFactor); // shrink older dots
+        const opacity = Math.max(0, baseOpacity * (1 - lifeRatio)); // reduce opacity of older dots
         return (
           <div
             key={d.id}

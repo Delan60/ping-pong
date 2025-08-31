@@ -13,10 +13,10 @@ export interface PaddleProps {
   keyMapping?: { up: string[]; down: string[] };
 }
 
-export const Paddle = forwardRef<PaddleHandle, PaddleProps>(function Paddle(
+export const Paddle = forwardRef<PaddleHandle, PaddleProps>((
   { side, ariaLabel, keyMapping },
   ref
-) {
+) => {
   const [paddleCenterY, setPaddleCenterY] = useState(PLAYFIELD_HEIGHT_PX / 2);
   const keyStateRef = useKeyHold(keyMapping);
   const previousFrameTimestampRef = useRef<number | null>(null);

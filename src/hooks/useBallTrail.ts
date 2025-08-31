@@ -20,30 +20,35 @@ export function useBallTrail(
 ) {
   const [dots, setDots] = useState<TrailDot[]>([]);
   const lastSampleRef = useRef<number>(0);
+  const rafIdRef = useRef<number | null>(null);
 
   useEffect(() => {
-    let raf: number;
-    const tick = () => {
-      const now = performance.now();
-      // age update
+    const step = () => {
+      const now = Date.now();
+      // Age existing dots age = now - d.id and filter dots older than fadeMs
       setDots((prev) =>
         prev
           .map((d) => ({ ...d, age: now - d.id })) // using id as timestamp base (monotonic)
           .filter((d) => now - d.id < fadeMs)
       );
-      // sample
+      // If more than intervalMs has passed from last sample, append a new dot
       if (now - lastSampleRef.current >= intervalMs) {
         lastSampleRef.current = now;
         setDots((prev) => {
           const next: TrailDot[] = [...prev, { id: now, x, y, age: 0 }];
+          // ensure that we only store maxDots dots
           if (next.length > maxDots) next.splice(0, next.length - maxDots);
           return next;
         });
       }
-      raf = requestAnimationFrame(tick);
+      rafIdRef.current = requestAnimationFrame(step);
     };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    rafIdRef.current = requestAnimationFrame(step);
+    return () => {
+      if (rafIdRef.current) {
+        cancelAnimationFrame(rafIdRef.current);
+      }
+    };
   }, [x, y, intervalMs, maxDots, fadeMs]);
 
   return dots;
