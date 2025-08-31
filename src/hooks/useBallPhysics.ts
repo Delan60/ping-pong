@@ -118,7 +118,7 @@ export function useBallPhysics(
     };
     rafIdRef.current = requestAnimationFrame(step);
     return () => { if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current); };
-  }, [leftPaddleRef, rightPaddleRef, radius, onScore]);
+  }, [leftPaddleRef, rightPaddleRef, radius, onScore, autoResetDelayMs]);
 
   return {
     x: renderX,

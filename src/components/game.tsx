@@ -6,7 +6,6 @@ import { Ball } from './ball';
 import { useBallPhysics } from '../hooks/useBallPhysics';
 import { Traces } from './Traces';
 import { Scoreboard } from './Scoreboard';
-import { PLAYFIELD_WIDTH_PX } from '../gameConfig';
 import styles from './game.module.css';
 
 export const Game: FC = () => {

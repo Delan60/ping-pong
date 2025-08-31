@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
+import { useEffect, useRef, useState, forwardRef, useImperativeHandle, useCallback } from 'react';
 import { useKeyHold } from '../hooks/useKeyHold';
 import styles from './paddle.module.css';
 import { PLAYFIELD_HEIGHT_PX, PADDLE_HEIGHT_PX, PADDLE_SPEED_PX_PER_SEC } from '../gameConfig';
@@ -19,7 +19,7 @@ export const Paddle = forwardRef<PaddleHandle, PaddleProps>(function Paddle({ si
 
 	const minimumCenterY = PADDLE_HEIGHT_PX / 2;
 	const maximumCenterY = PLAYFIELD_HEIGHT_PX - PADDLE_HEIGHT_PX / 2;
-	const clampCenterY = (value: number) => Math.min(maximumCenterY, Math.max(minimumCenterY, value));
+	const clampCenterY = useCallback((value: number) => Math.min(maximumCenterY, Math.max(minimumCenterY, value)), [maximumCenterY, minimumCenterY]);
 
 	useEffect(() => {
 		const step = (timestamp: number) => {
@@ -40,7 +40,7 @@ export const Paddle = forwardRef<PaddleHandle, PaddleProps>(function Paddle({ si
 		};
 		animationFrameIdRef.current = requestAnimationFrame(step);
 		return () => { if (animationFrameIdRef.current) cancelAnimationFrame(animationFrameIdRef.current); };
-	}, [keyMapping]);
+	}, [keyStateRef, clampCenterY]);
 
 	const topPercent = (paddleCenterY / PLAYFIELD_HEIGHT_PX) * 100;
 	const edgeClass = side === 'left' ? styles.leftEdge : styles.rightEdge;

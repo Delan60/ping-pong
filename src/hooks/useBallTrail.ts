@@ -11,11 +11,9 @@ interface Options {
 export function useBallTrail(x: number, y: number, { intervalMs = 40, maxDots = 20, fadeMs = 600 }: Options = {}) {
   const [dots, setDots] = useState<TrailDot[]>([]);
   const lastSampleRef = useRef<number>(0);
-  const idRef = useRef(0);
 
   useEffect(() => {
     let raf: number;
-    const start = performance.now();
     const tick = () => {
       const now = performance.now();
       // age update
