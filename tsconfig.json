@@ -15,8 +15,9 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "types": ["vitest", "node"]
   },
-  "include": ["src"],
+  "include": ["src", "vitest.config.ts"],
   "references": []
 }

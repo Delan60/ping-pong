@@ -9,7 +9,7 @@ import {
 } from '../gameConfig';
 import type { PaddleHandle } from '../components/paddle/paddle';
 import { getRandomSign } from '../utils/getRandomSign';
-import { hasBallCollidedWithPaddle } from '../utils/hasBallCollidedWithPaddle';
+import { moveBall } from '../physics/moveBall';
 
 const INITIAL_DIRECTION = { x: 0.7, y: 0.3 };
 
@@ -81,53 +81,24 @@ export function useBallPhysics(
         return;
       }
 
-      let { vx, vy } = velocityRef.current;
-      let nextX = posRef.current.x + vx * dt;
-      let nextY = posRef.current.y + vy * dt;
-      let collided = false;
-
-      // Vertical walls (top / bottom)
-      if (nextY - radius < 0) {
-        // Top collision
-        nextY = radius;
-        vy = Math.abs(vy);
-        collided = true;
-      } else if (nextY + radius > PLAYFIELD_HEIGHT_PX) {
-        // Bottom collision
-        nextY = PLAYFIELD_HEIGHT_PX - radius;
-        vy = -Math.abs(vy);
-        collided = true;
-      }
-
       const leftPaddle = leftPaddleRef.current?.getState();
       const rightPaddle = rightPaddleRef.current?.getState();
-
-      const headingLeft = vx < 0;
-      const headingRight = vx > 0;
-
-      // Left paddle collision (check crossing boundary to reduce tunneling)
-      if (headingLeft && nextX - radius <= PADDLE_WIDTH_PX) {
-        if (
-          leftPaddle &&
-          hasBallCollidedWithPaddle(nextY, leftPaddle.centerY, PADDLE_HEIGHT_PX, radius)
-        ) {
-          nextX = PADDLE_WIDTH_PX + radius;
-          vx = Math.abs(vx);
-          collided = true;
-        }
-      }
-      // Right paddle collision
-      const rightPaddleX = PLAYFIELD_WIDTH_PX - PADDLE_WIDTH_PX;
-      if (headingRight && nextX + radius >= rightPaddleX) {
-        if (
-          rightPaddle &&
-          hasBallCollidedWithPaddle(nextY, rightPaddle.centerY, PADDLE_HEIGHT_PX, radius)
-        ) {
-          nextX = rightPaddleX - radius;
-          vx = -Math.abs(vx);
-          collided = true;
-        }
-      }
+  const stepResult = moveBall({
+        x: posRef.current.x,
+        y: posRef.current.y,
+        vx: velocityRef.current.vx,
+        vy: velocityRef.current.vy,
+        dt,
+        leftPaddle: leftPaddle && { centerY: leftPaddle.centerY },
+        rightPaddle: rightPaddle && { centerY: rightPaddle.centerY },
+        config: {
+          radius,
+          playfieldWidth: PLAYFIELD_WIDTH_PX,
+          playfieldHeight: PLAYFIELD_HEIGHT_PX,
+          paddleWidth: PADDLE_WIDTH_PX,
+          paddleHeight: PADDLE_HEIGHT_PX,
+        },
+      });
 
       if (awaitingResetRef.current) {
         // Just wait until reset fires
@@ -144,9 +115,9 @@ export function useBallPhysics(
         velocityRef.current.vy = 0;
         // Move ball fully off-screen on the side it exited to hide it
         if (scoringSide === 'right') {
-          posRef.current = { x: -radius * 3, y: nextY }; // push further left
+          posRef.current = { x: -radius * 3, y: posRef.current.y }; // push further left
         } else {
-          posRef.current = { x: PLAYFIELD_WIDTH_PX + radius * 3, y: nextY }; // push further right
+          posRef.current = { x: PLAYFIELD_WIDTH_PX + radius * 3, y: posRef.current.y }; // push further right
         }
         setPositionState(posRef.current);
         setTimeout(() => {
@@ -154,23 +125,15 @@ export function useBallPhysics(
           awaitingResetRef.current = false;
         }, autoResetDelayMs);
       };
-
-      const fullyPastLeft = nextX + radius < 0;
-      const fullyPastRight = nextX - radius > PLAYFIELD_WIDTH_PX;
-      if (fullyPastLeft || fullyPastRight) {
-        // If the ball fully passed the left side, it is a score for the right player
-        scheduleScoreReset(fullyPastLeft ? 'right' : 'left');
+      if (stepResult.scoredSide) {
+        scheduleScoreReset(stepResult.scoredSide);
         rafIdRef.current = requestAnimationFrame(step);
         return;
       }
 
-      if (collided) {
-        // Velocity changes only if collided
-        velocityRef.current.vx = vx;
-        velocityRef.current.vy = vy;
-      }
-
-      posRef.current = { x: nextX, y: nextY };
+      velocityRef.current.vx = stepResult.vx;
+      velocityRef.current.vy = stepResult.vy;
+      posRef.current = { x: stepResult.x, y: stepResult.y };
       // Push to React state (could throttle if needed)
       setPositionState(posRef.current);
 

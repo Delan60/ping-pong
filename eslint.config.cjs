@@ -45,4 +45,17 @@ module.exports = [
       'jsx-a11y/click-events-have-key-events': 'off',
     },
   },
+  // Final test override AFTER type-checked configs so we relax unsafe rules in test files only
+  {
+    files: ['src/**/*.test.ts'],
+    languageOptions: {
+      globals: { describe: 'readonly', it: 'readonly', expect: 'readonly' },
+    },
+    rules: {
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+    },
+  },
 ];
