@@ -6,7 +6,6 @@ import { Ball } from '../ball/ball';
 import { useBallPhysics } from '../../hooks/useBallPhysics';
 import { Traces } from '../traces/traces';
 import { Scoreboard } from '../scoreboard/scoreboard';
-import { Leaderboard } from '../leaderboard/leaderboard';
 import { MatchOverlay } from '../matchoverlay/matchOverlay';
 import { useLeaderboard } from '../../hooks/useLeaderboard';
 import { useMatch } from '../../hooks/useMatch';
@@ -64,7 +63,6 @@ export const Game: FC = () => {
             onChangeDifficulty={(d) => setDifficulty(d)}
           />
         </Layout>
-        <Leaderboard />
       </div>
     </div>
   );

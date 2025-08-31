@@ -54,15 +54,12 @@ export function useBallPhysics(
   const radius = BALL_SIZE_PX / 2;
   const awaitingResetRef = useRef(false);
 
-  const seedVelocity = useCallback(
-    () => {
-      velocityRef.current.vx =
-        getRandomSign() * INITIAL_DIRECTION.x * BALL_INITIAL_SPEED_PX_PER_SEC * difficulty;
-      velocityRef.current.vy =
-        getRandomSign() * INITIAL_DIRECTION.y * BALL_INITIAL_SPEED_PX_PER_SEC * difficulty;
-    },
-    [difficulty]
-  );
+  const seedVelocity = useCallback(() => {
+    velocityRef.current.vx =
+      getRandomSign() * INITIAL_DIRECTION.x * BALL_INITIAL_SPEED_PX_PER_SEC * difficulty;
+    velocityRef.current.vy =
+      getRandomSign() * INITIAL_DIRECTION.y * BALL_INITIAL_SPEED_PX_PER_SEC * difficulty;
+  }, [difficulty]);
 
   const reset = useCallback(() => {
     posRef.current = { x: PLAYFIELD_WIDTH_PX / 2, y: PLAYFIELD_HEIGHT_PX / 2 };
@@ -110,7 +107,10 @@ export function useBallPhysics(
 
       // Left paddle collision (check crossing boundary to reduce tunneling)
       if (headingLeft && nextX - radius <= PADDLE_WIDTH_PX) {
-        if (leftPaddle && hasBallCollidedWithPaddle(nextY, leftPaddle.centerY, PADDLE_HEIGHT_PX, radius)) {
+        if (
+          leftPaddle &&
+          hasBallCollidedWithPaddle(nextY, leftPaddle.centerY, PADDLE_HEIGHT_PX, radius)
+        ) {
           nextX = PADDLE_WIDTH_PX + radius;
           vx = Math.abs(vx);
           collided = true;
@@ -119,7 +119,10 @@ export function useBallPhysics(
       // Right paddle collision
       const rightPaddleX = PLAYFIELD_WIDTH_PX - PADDLE_WIDTH_PX;
       if (headingRight && nextX + radius >= rightPaddleX) {
-        if (rightPaddle && hasBallCollidedWithPaddle(nextY, rightPaddle.centerY, PADDLE_HEIGHT_PX, radius)) {
+        if (
+          rightPaddle &&
+          hasBallCollidedWithPaddle(nextY, rightPaddle.centerY, PADDLE_HEIGHT_PX, radius)
+        ) {
           nextX = rightPaddleX - radius;
           vx = -Math.abs(vx);
           collided = true;

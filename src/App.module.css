@@ -1,0 +1,26 @@
+.appRoot {
+  position: relative;
+  min-height: 100vh;
+}
+.toggleBtnContainer {
+  position: fixed;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 1000;
+}
+.toggleBtn {
+  cursor: pointer;
+  padding: 0.5rem 0.9rem;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background: #1e1e1e;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  transition: background 120ms;
+}
+.toggleBtn:hover {
+  background: #2a2a2a;
+}
