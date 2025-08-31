@@ -4,3 +4,7 @@
   - To consider -> moving paddle with a mouse instead
 - Added second paddle
   - to consider, introducing a new keymap vs player vs AI
+- Added leaderboard
+  - need to add a logic to begin start match
+  - leaderboard can potentially be a separate screen
+  - we could add a player's name to leaderboard if they have a high score

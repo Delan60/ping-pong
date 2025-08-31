@@ -25,6 +25,7 @@ export interface BallPhysicsState {
 interface UseBallPhysicsOptions {
   onScore?: (side: 'left' | 'right') => void; // side that scored
   autoResetDelayMs?: number; // delay before reset after score
+  paused?: boolean; // freeze movement (no position updates)
 }
 
 export function useBallPhysics(
@@ -32,7 +33,7 @@ export function useBallPhysics(
   rightPaddleRef: React.RefObject<PaddleHandle | null>,
   options: UseBallPhysicsOptions = {}
 ): BallPhysicsState {
-  const { onScore, autoResetDelayMs = 800 } = options;
+  const { onScore, autoResetDelayMs = 800, paused = false } = options;
   // Render-state (derived from refs each frame)
   const [renderX, setRenderX] = useState(PLAYFIELD_WIDTH_PX / 2);
   const [renderY, setRenderY] = useState(PLAYFIELD_HEIGHT_PX / 2);
@@ -66,6 +67,12 @@ export function useBallPhysics(
       let dt = (ts - prevTsRef.current) / 1000;
       prevTsRef.current = ts;
       if (dt > MAX_DT) dt = MAX_DT;
+
+      if (paused) {
+        // Keep timestamps in sync but skip physics integration
+        rafIdRef.current = requestAnimationFrame(step);
+        return;
+      }
 
       let { vx, vy } = velocityRef.current;
       let nx = xRef.current + vx * dt;
@@ -154,7 +161,7 @@ export function useBallPhysics(
     return () => {
       if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
     };
-  }, [leftPaddleRef, rightPaddleRef, radius, onScore, autoResetDelayMs]);
+  }, [leftPaddleRef, rightPaddleRef, radius, onScore, autoResetDelayMs, paused]);
 
   return {
     x: renderX,

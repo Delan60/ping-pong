@@ -15,3 +15,5 @@ export const BALL_SPEED_INCREMENT = 40; // speed added after each paddle hit (fu
 export const BALL_MAX_SPEED_PX_PER_SEC = 1000;
 
 // export const PADDLE_WIDTH_PX = 12; // if needed in logic
+
+export const WIN_SCORE = 5; // points required to win a match
