@@ -10,7 +10,7 @@ import { MatchOverlay } from '../matchoverlay/matchOverlay';
 import { useLeaderboard } from '../../hooks/useLeaderboard';
 import { useMatch } from '../../hooks/useMatch';
 import { useAddMatchToLeaderboard } from '../../hooks/useAddMatchToLeaderboard';
-import { WIN_SCORE } from '../../gameConfig';
+import { WIN_SCORE, AUTO_RESET_DELAY_MS } from '../../gameConfig';
 import styles from './game.module.css';
 
 export const Game: FC = () => {
@@ -54,7 +54,7 @@ export const Game: FC = () => {
 
   const ball = useBallPhysics(leftPaddleRef, rightPaddleRef, {
     onScore: handleScore,
-    autoResetDelayMs: 700,
+    autoResetDelayMs: AUTO_RESET_DELAY_MS as number,
     paused,
     difficulty: difficultyScale,
   });

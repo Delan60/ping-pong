@@ -15,3 +15,4 @@ export const BALL_SPEED_INCREMENT = 40; // speed added after each paddle hit (fu
 export const BALL_MAX_SPEED_PX_PER_SEC = 1000;
 
 export const WIN_SCORE = 5; // points required to win a match
+export const AUTO_RESET_DELAY_MS: number = 500; // delay after a point before ball auto-resets

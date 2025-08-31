@@ -86,14 +86,14 @@ export function useBallPhysics(
       let nextY = posRef.current.y + vy * dt;
       let collided = false;
 
-      // Vertical walls
+      // Vertical walls (top / bottom)
       if (nextY - radius < 0) {
-        // Bottom collision
+        // Top collision
         nextY = radius;
         vy = Math.abs(vy);
         collided = true;
       } else if (nextY + radius > PLAYFIELD_HEIGHT_PX) {
-        // Top collision
+        // Bottom collision
         nextY = PLAYFIELD_HEIGHT_PX - radius;
         vy = -Math.abs(vy);
         collided = true;
@@ -139,8 +139,16 @@ export function useBallPhysics(
       const scheduleScoreReset = (scoringSide: 'left' | 'right') => {
         awaitingResetRef.current = true;
         onScore?.(scoringSide);
+        // Stop the ball from moving
         velocityRef.current.vx = 0;
-        velocityRef.current.vy = 0; // freeze during pause
+        velocityRef.current.vy = 0;
+        // Move ball fully off-screen on the side it exited to hide it
+        if (scoringSide === 'right') {
+          posRef.current = { x: -radius * 3, y: nextY }; // push further left
+        } else {
+          posRef.current = { x: PLAYFIELD_WIDTH_PX + radius * 3, y: nextY }; // push further right
+        }
+        setPositionState(posRef.current);
         setTimeout(() => {
           reset();
           awaitingResetRef.current = false;
