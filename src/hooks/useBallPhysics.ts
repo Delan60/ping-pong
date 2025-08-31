@@ -52,18 +52,18 @@ export function useBallPhysics(leftPaddleRef: React.RefObject<PaddleHandle | nul
       if (ny - radius < 0) { ny = radius; vy = Math.abs(vy); collided = true; }
       else if (ny + radius > PLAYFIELD_HEIGHT_PX) { ny = PLAYFIELD_HEIGHT_PX - radius; vy = -Math.abs(vy); collided = true; }
 
-      const left = leftPaddleRef.current?.getState();
-      const right = rightPaddleRef.current?.getState();
+      const leftPaddle = leftPaddleRef.current?.getState();
+      const rightPaddle = rightPaddleRef.current?.getState();
 
       // Left paddle collision (check crossing boundary to reduce tunneling)
       if (vx < 0 && nx - radius <= PADDLE_WIDTH_PX) {
-        if (left && Math.abs(ny - left.centerY) <= PADDLE_HEIGHT_PX / 2 + radius) {
+        if (leftPaddle && Math.abs(ny - leftPaddle.centerY) <= PADDLE_HEIGHT_PX / 2 + radius) {
           nx = PADDLE_WIDTH_PX + radius; vx = Math.abs(vx); collided = true; }
       }
       // Right paddle collision
       const rightPaddleX = PLAYFIELD_WIDTH_PX - PADDLE_WIDTH_PX;
       if (vx > 0 && nx + radius >= rightPaddleX) {
-        if (right && Math.abs(ny - right.centerY) <= PADDLE_HEIGHT_PX / 2 + radius) {
+        if (rightPaddle && Math.abs(ny - rightPaddle.centerY) <= PADDLE_HEIGHT_PX / 2 + radius) {
           nx = rightPaddleX - radius; vx = -Math.abs(vx); collided = true; }
       }
 

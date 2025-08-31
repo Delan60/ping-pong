@@ -4,6 +4,7 @@ import { Layout } from './layout';
 import { Paddle, type PaddleHandle } from './paddle';
 import { Ball } from './ball';
 import { useBallPhysics } from '../hooks/useBallPhysics';
+import { Traces } from './Traces';
 
 export const Game: FC = () => {
   const leftPaddleRef = useRef<PaddleHandle>(null);
@@ -14,6 +15,7 @@ export const Game: FC = () => {
     <Layout>
         <Paddle ref={leftPaddleRef} side="left" ariaLabel="left player paddle" />
         <Paddle ref={rightPaddleRef} side="right" ariaLabel="right player paddle" keyMapping={{ up: ['i','I'], down: ['k','K'] }} />
+        <Traces x={ball.x} y={ball.y} />
         <Ball x={ball.x} y={ball.y} />
     </Layout>
   );
