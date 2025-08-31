@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import styles from './Scoreboard.module.css';
+import styles from './scoreboard.module.css';
 
 export interface ScoreboardProps {
   left: number;

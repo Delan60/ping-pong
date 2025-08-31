@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { useRef } from 'react';
+import { useRef, useState, useMemo } from 'react';
 import { Layout } from './layout';
 import { Paddle, type PaddleHandle } from './paddle';
 import { Ball } from './ball';
@@ -17,6 +17,17 @@ export const Game: FC = () => {
   const leftPaddleRef = useRef<PaddleHandle>(null);
   const rightPaddleRef = useRef<PaddleHandle>(null);
   const { addMatch } = useLeaderboard();
+  const [difficulty, setDifficulty] = useState<'easy' | 'normal' | 'hard'>('normal');
+  const difficultyScale = useMemo(() => {
+    switch (difficulty) {
+      case 'easy':
+        return 0.8;
+      case 'hard':
+        return 1.4;
+      default:
+        return 1.0;
+    }
+  }, [difficulty]);
   const { leftScore, rightScore, awaitingStart, paused, handleScore, beginMatch } = useMatch({
     winScore: WIN_SCORE,
     addMatch,
@@ -26,6 +37,7 @@ export const Game: FC = () => {
     onScore: handleScore,
     autoResetDelayMs: 700,
     paused,
+    difficulty: difficultyScale,
   });
 
   return (
@@ -42,15 +54,17 @@ export const Game: FC = () => {
           />
           <Traces x={ball.x} y={ball.y} />
           <Ball x={ball.x} y={ball.y} />
+          <MatchOverlay
+            awaitingStart={awaitingStart}
+            leftScore={leftScore}
+            rightScore={rightScore}
+            winScore={WIN_SCORE}
+            onBegin={beginMatch}
+            difficulty={difficulty}
+            onChangeDifficulty={(d) => setDifficulty(d)}
+          />
         </Layout>
         <Leaderboard />
-        <MatchOverlay
-          awaitingStart={awaitingStart}
-          leftScore={leftScore}
-          rightScore={rightScore}
-          winScore={WIN_SCORE}
-          onBegin={beginMatch}
-        />
       </div>
     </div>
   );

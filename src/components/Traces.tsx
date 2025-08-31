@@ -1,7 +1,7 @@
 import React from 'react';
 import { useBallTrail } from '../hooks/useBallTrail';
 import { BALL_SIZE_PX } from '../gameConfig';
-import styles from './ball.module.css';
+import styles from './traces.module.css';
 
 export interface TracesProps {
   x: number;

@@ -1,0 +1,19 @@
+.root {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font: 14px system-ui, sans-serif;
+  margin: 4px auto 8px;
+}
+.root select {
+  padding: 4px 8px;
+  font: inherit;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+}
+/* Compact variant when embedded in overlay card */
+.compact {
+  margin: 0 auto -4px;
+  font-size: 13px;
+}

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import {
   BALL_INITIAL_SPEED_PX_PER_SEC,
   BALL_SIZE_PX,
@@ -26,6 +26,7 @@ interface UseBallPhysicsOptions {
   onScore?: (side: 'left' | 'right') => void; // side that scored
   autoResetDelayMs?: number; // delay before reset after score
   paused?: boolean; // freeze movement (no position updates)
+  difficulty?: number; // difficulty multiplier for initial/base speed
 }
 
 export function useBallPhysics(
@@ -33,7 +34,7 @@ export function useBallPhysics(
   rightPaddleRef: React.RefObject<PaddleHandle | null>,
   options: UseBallPhysicsOptions = {}
 ): BallPhysicsState {
-  const { onScore, autoResetDelayMs = 800, paused = false } = options;
+  const { onScore, autoResetDelayMs = 800, paused = false, difficulty = 1 } = options;
   // Render-state (derived from refs each frame)
   const [renderX, setRenderX] = useState(PLAYFIELD_WIDTH_PX / 2);
   const [renderY, setRenderY] = useState(PLAYFIELD_HEIGHT_PX / 2);
@@ -41,24 +42,30 @@ export function useBallPhysics(
   const xRef = useRef(renderX);
   const yRef = useRef(renderY);
   const velocityRef = useRef({
-    vx: INITIAL_DIRECTION.x * BALL_INITIAL_SPEED_PX_PER_SEC,
-    vy: INITIAL_DIRECTION.y * BALL_INITIAL_SPEED_PX_PER_SEC,
+    vx: INITIAL_DIRECTION.x * BALL_INITIAL_SPEED_PX_PER_SEC * difficulty,
+    vy: INITIAL_DIRECTION.y * BALL_INITIAL_SPEED_PX_PER_SEC * difficulty,
   });
   const prevTsRef = useRef<number | null>(null);
   const rafIdRef = useRef<number | null>(null);
   const radius = BALL_SIZE_PX / 2;
   const awaitingResetRef = useRef(false);
 
-  const reset = () => {
+  const reset = useCallback(() => {
     xRef.current = PLAYFIELD_WIDTH_PX / 2;
     yRef.current = PLAYFIELD_HEIGHT_PX / 2;
     velocityRef.current.vx =
-      INITIAL_DIRECTION.x * BALL_INITIAL_SPEED_PX_PER_SEC * (Math.random() < 0.5 ? -1 : 1);
+      INITIAL_DIRECTION.x *
+      BALL_INITIAL_SPEED_PX_PER_SEC *
+      difficulty *
+      (Math.random() < 0.5 ? -1 : 1);
     velocityRef.current.vy =
-      INITIAL_DIRECTION.y * BALL_INITIAL_SPEED_PX_PER_SEC * (Math.random() < 0.5 ? -1 : 1);
+      INITIAL_DIRECTION.y *
+      BALL_INITIAL_SPEED_PX_PER_SEC *
+      difficulty *
+      (Math.random() < 0.5 ? -1 : 1);
     setRenderX(xRef.current);
     setRenderY(yRef.current);
-  };
+  }, [difficulty]);
 
   useEffect(() => {
     const MAX_DT = 0.05; // cap to avoid huge leaps after tab inactive
@@ -161,7 +168,17 @@ export function useBallPhysics(
     return () => {
       if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
     };
-  }, [leftPaddleRef, rightPaddleRef, radius, onScore, autoResetDelayMs, paused]);
+  }, [leftPaddleRef, rightPaddleRef, radius, onScore, autoResetDelayMs, paused, difficulty, reset]);
+
+  // Rescale velocity if difficulty changes
+  useEffect(() => {
+    velocityRef.current.vx =
+      Math.sign(velocityRef.current.vx) *
+      Math.abs(INITIAL_DIRECTION.x * BALL_INITIAL_SPEED_PX_PER_SEC * difficulty);
+    velocityRef.current.vy =
+      Math.sign(velocityRef.current.vy) *
+      Math.abs(INITIAL_DIRECTION.y * BALL_INITIAL_SPEED_PX_PER_SEC * difficulty);
+  }, [difficulty]);
 
   return {
     x: renderX,

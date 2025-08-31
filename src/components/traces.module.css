@@ -1,0 +1,10 @@
+.trailDot {
+  position: absolute;
+  background: #ff5722;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0.6;
+  transform: translate(-50%, -50%);
+  will-change: opacity, transform;
+  transition: opacity 0.25s linear;
+}
