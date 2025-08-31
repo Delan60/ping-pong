@@ -1,5 +1,5 @@
 import styles from './ball.module.css';
-import { BALL_SIZE_PX } from '../gameConfig';
+import { BALL_SIZE_PX } from '../../gameConfig';
 
 export interface BallProps {
   x: number; // center x

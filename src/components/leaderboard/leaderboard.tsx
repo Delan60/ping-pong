@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLeaderboard } from '../leaderboard/useLeaderboard';
+import { useLeaderboard } from '../../hooks/useLeaderboard';
 import styles from './leaderboard.module.css';
 
 export const Leaderboard: React.FC = () => {

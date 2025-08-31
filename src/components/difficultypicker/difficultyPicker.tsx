@@ -22,11 +22,7 @@ export const DifficultyPicker: React.FC<DifficultyPickerProps> = ({
 }) => {
   return (
     <div
-      className={[
-        styles.root,
-        compact ? styles.compact : '',
-        className || '',
-      ]
+      className={[styles.root, compact ? styles.compact : '', className || '']
         .filter(Boolean)
         .join(' ')}
     >

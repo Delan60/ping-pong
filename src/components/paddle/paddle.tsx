@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, forwardRef, useImperativeHandle, useCallback } from 'react';
-import { useKeyHold } from '../hooks/useKeyHold';
+import { useKeyHold } from '../../hooks/useKeyHold';
 import styles from './paddle.module.css';
-import { PLAYFIELD_HEIGHT_PX, PADDLE_HEIGHT_PX, PADDLE_SPEED_PX_PER_SEC } from '../gameConfig';
+import { PLAYFIELD_HEIGHT_PX, PADDLE_HEIGHT_PX, PADDLE_SPEED_PX_PER_SEC } from '../../gameConfig';
 
 export interface PaddleHandle {
   getState(): { centerY: number; side: 'left' | 'right' };

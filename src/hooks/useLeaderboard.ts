@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { addEntry as persistAdd, clearLeaderboard, loadLeaderboard } from './storage';
-import type { LeaderboardEntry } from './types';
+import { addEntry as persistAdd, clearLeaderboard, loadLeaderboard } from '../localstorage/storage';
+import type { LeaderboardEntry } from '../localstorage/types';
 
 export interface UseLeaderboardApi {
   entries: LeaderboardEntry[];

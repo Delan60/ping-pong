@@ -3,7 +3,7 @@ import type { FC, ReactNode } from 'react';
 interface LayoutProps {
   children: ReactNode;
 }
-import { PLAYFIELD_HEIGHT_PX, PLAYFIELD_WIDTH_PX } from '../gameConfig';
+import { PLAYFIELD_HEIGHT_PX, PLAYFIELD_WIDTH_PX } from '../../gameConfig';
 
 import styles from './layout.module.css';
 

@@ -1,16 +1,16 @@
 import type { FC } from 'react';
 import { useRef, useState, useMemo } from 'react';
-import { Layout } from './layout';
-import { Paddle, type PaddleHandle } from './paddle';
-import { Ball } from './ball';
-import { useBallPhysics } from '../hooks/useBallPhysics';
-import { Traces } from './Traces';
-import { Scoreboard } from './Scoreboard';
-import { Leaderboard } from './Leaderboard';
-import { MatchOverlay } from './MatchOverlay';
-import { useLeaderboard } from '../leaderboard/useLeaderboard';
-import { useMatch } from '../hooks/useMatch';
-import { WIN_SCORE } from '../gameConfig';
+import { Layout } from '../layout/layout';
+import { Paddle, type PaddleHandle } from '../paddle/paddle';
+import { Ball } from '../ball/ball';
+import { useBallPhysics } from '../../hooks/useBallPhysics';
+import { Traces } from '../traces/traces';
+import { Scoreboard } from '../scoreboard/scoreboard';
+import { Leaderboard } from '../leaderboard/leaderboard';
+import { MatchOverlay } from '../matchoverlay/matchOverlay';
+import { useLeaderboard } from '../../hooks/useLeaderboard';
+import { useMatch } from '../../hooks/useMatch';
+import { WIN_SCORE } from '../../gameConfig';
 import styles from './game.module.css';
 
 export const Game: FC = () => {

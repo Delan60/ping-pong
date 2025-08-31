@@ -1,6 +1,6 @@
 import React from 'react';
 import styles from './matchOverlay.module.css';
-import { DifficultyPicker } from './DifficultyPicker';
+import { DifficultyPicker } from '../difficultypicker/difficultyPicker';
 
 export interface MatchOverlayProps {
   awaitingStart: boolean;
@@ -26,7 +26,7 @@ export const MatchOverlay: React.FC<MatchOverlayProps> = ({
   return (
     <div className={styles.overlay} role="dialog" aria-modal="true">
       <div className={styles.overlayContent}>
-  <DifficultyPicker value={difficulty} onChange={onChangeDifficulty} compact />
+        <DifficultyPicker value={difficulty} onChange={onChangeDifficulty} compact />
         {finished ? (
           <>
             <h2>Match complete</h2>

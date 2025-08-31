@@ -7,7 +7,7 @@ import {
   PLAYFIELD_HEIGHT_PX,
   PLAYFIELD_WIDTH_PX,
 } from '../gameConfig';
-import type { PaddleHandle } from '../components/paddle';
+import type { PaddleHandle } from '../components/paddle/paddle';
 
 const INITIAL_DIRECTION = { x: 0.7, y: 0.3 };
 
