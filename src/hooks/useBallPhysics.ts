@@ -11,7 +11,17 @@ export interface BallPhysicsState {
   reset: () => void;
 }
 
-export function useBallPhysics(leftPaddleRef: React.RefObject<PaddleHandle | null>, rightPaddleRef: React.RefObject<PaddleHandle | null>): BallPhysicsState {
+interface UseBallPhysicsOptions {
+  onScore?: (side: 'left' | 'right') => void; // side that scored
+  autoResetDelayMs?: number; // delay before reset after score
+}
+
+export function useBallPhysics(
+  leftPaddleRef: React.RefObject<PaddleHandle | null>,
+  rightPaddleRef: React.RefObject<PaddleHandle | null>,
+  options: UseBallPhysicsOptions = {}
+): BallPhysicsState {
+  const { onScore, autoResetDelayMs = 800 } = options;
   // Render-state (derived from refs each frame)
   const [renderX, setRenderX] = useState(PLAYFIELD_WIDTH_PX / 2);
   const [renderY, setRenderY] = useState(PLAYFIELD_HEIGHT_PX / 2);
@@ -25,6 +35,7 @@ export function useBallPhysics(leftPaddleRef: React.RefObject<PaddleHandle | nul
   const prevTsRef = useRef<number | null>(null);
   const rafIdRef = useRef<number | null>(null);
   const radius = BALL_SIZE_PX / 2;
+  const awaitingResetRef = useRef(false);
 
   const reset = () => {
     xRef.current = PLAYFIELD_WIDTH_PX / 2;
@@ -67,9 +78,30 @@ export function useBallPhysics(leftPaddleRef: React.RefObject<PaddleHandle | nul
           nx = rightPaddleX - radius; vx = -Math.abs(vx); collided = true; }
       }
 
-      // Horizontal walls (missed paddles) ensure containment
-      if (nx - radius < 0) { nx = radius; vx = Math.abs(vx); collided = true; }
-      else if (nx + radius > PLAYFIELD_WIDTH_PX) { debugger; nx = PLAYFIELD_WIDTH_PX - radius; vx = -Math.abs(vx); collided = true; }
+      // Scoring (ball fully crosses boundary) OR bounce if only contacting edge
+      const fullyPastLeft = nx + radius < 0;
+      const fullyPastRight = nx - radius > PLAYFIELD_WIDTH_PX;
+      if (awaitingResetRef.current) {
+        // Just wait until reset fires
+        rafIdRef.current = requestAnimationFrame(step);
+        return;
+      }
+      if (fullyPastLeft) {
+        awaitingResetRef.current = true;
+        onScore?.('right');
+        velocityRef.current.vx = 0; velocityRef.current.vy = 0; // freeze
+        setTimeout(() => { reset(); awaitingResetRef.current = false; }, autoResetDelayMs);
+        rafIdRef.current = requestAnimationFrame(step);
+        return;
+      }
+      if (fullyPastRight) {
+        awaitingResetRef.current = true;
+        onScore?.('left');
+        velocityRef.current.vx = 0; velocityRef.current.vy = 0;
+        setTimeout(() => { reset(); awaitingResetRef.current = false; }, autoResetDelayMs);
+        rafIdRef.current = requestAnimationFrame(step);
+        return;
+      }
 
       if (collided) {
         velocityRef.current.vx = vx;
@@ -86,7 +118,7 @@ export function useBallPhysics(leftPaddleRef: React.RefObject<PaddleHandle | nul
     };
     rafIdRef.current = requestAnimationFrame(step);
     return () => { if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current); };
-  }, [leftPaddleRef, rightPaddleRef, radius]);
+  }, [leftPaddleRef, rightPaddleRef, radius, onScore]);
 
   return {
     x: renderX,

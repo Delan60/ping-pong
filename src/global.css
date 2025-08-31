@@ -1,0 +1,13 @@
+/* Global resets / base styles */
+html, body, #root {
+  height: 100%;
+}
+body {
+  margin: 0; /* remove default 8px margin */
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  background: #fafafa; /* fallback */
+}
+* {
+  box-sizing: border-box;
+}

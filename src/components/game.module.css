@@ -1,0 +1,16 @@
+ .gameWrapper {
+	background: #fafafa;
+	height: 100vh;
+	display: flex;
+    flex-grow: 1;
+	flex-direction: column;
+	align-items: center; /* center horizontally */
+	padding: 16px 0;
+	box-sizing: border-box;
+}
+
+.gameInner {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+}
