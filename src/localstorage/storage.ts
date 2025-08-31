@@ -1,7 +1,7 @@
 import type { LeaderboardEntry } from './types';
 
 const KEY = 'pp_leaderboard_v1';
-const MAX_ENTRIES = 25;
+const MAX_ENTRIES = 5;
 
 function isEntry(o: unknown): o is LeaderboardEntry {
   if (!o || typeof o !== 'object') return false;

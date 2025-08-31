@@ -9,13 +9,14 @@ import { Scoreboard } from '../scoreboard/scoreboard';
 import { MatchOverlay } from '../matchoverlay/matchOverlay';
 import { useLeaderboard } from '../../hooks/useLeaderboard';
 import { useMatch } from '../../hooks/useMatch';
+import { useAddMatchToLeaderboard } from '../../hooks/useAddMatchToLeaderboard';
 import { WIN_SCORE } from '../../gameConfig';
 import styles from './game.module.css';
 
 export const Game: FC = () => {
   const leftPaddleRef = useRef<PaddleHandle>(null);
   const rightPaddleRef = useRef<PaddleHandle>(null);
-  const { addMatch } = useLeaderboard();
+  const { lowestScoreDiff } = useLeaderboard();
   const [difficulty, setDifficulty] = useState<'easy' | 'normal' | 'hard'>('normal');
   const difficultyScale = useMemo(() => {
     switch (difficulty) {
@@ -27,9 +28,28 @@ export const Game: FC = () => {
         return 1.0;
     }
   }, [difficulty]);
-  const { leftScore, rightScore, awaitingStart, paused, handleScore, beginMatch } = useMatch({
-    winScore: WIN_SCORE,
-    addMatch,
+  const {
+    leftScore,
+    rightScore,
+    awaitingStart,
+    paused,
+    handleScore,
+    beginMatch,
+    winnerSide,
+    lastMatchDurationMs,
+  } = useMatch({
+    winScore: WIN_SCORE as number,
+  });
+
+  const shouldBeAddedToLeaderboard = useMemo(() => {
+    return Math.abs(leftScore - rightScore) > lowestScoreDiff;
+  }, [leftScore, rightScore, lowestScoreDiff]);
+
+  const addMatchToLeaderboard = useAddMatchToLeaderboard({
+    winnerSide,
+    leftScore,
+    rightScore,
+    lastMatchDurationMs,
   });
 
   const ball = useBallPhysics(leftPaddleRef, rightPaddleRef, {
@@ -57,10 +77,13 @@ export const Game: FC = () => {
             awaitingStart={awaitingStart}
             leftScore={leftScore}
             rightScore={rightScore}
-            winScore={WIN_SCORE}
-            onBegin={beginMatch}
+            winScore={WIN_SCORE as number}
+            onBeginMatch={beginMatch}
             difficulty={difficulty}
             onChangeDifficulty={(d) => setDifficulty(d)}
+            winnerSide={winnerSide}
+            winnerNeedsName={shouldBeAddedToLeaderboard}
+            onSubmitWinner={addMatchToLeaderboard}
           />
         </Layout>
       </div>

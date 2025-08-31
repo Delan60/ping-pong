@@ -1,15 +1,19 @@
 import React from 'react';
 import styles from './matchOverlay.module.css';
 import { DifficultyPicker } from '../difficultypicker/difficultyPicker';
+import { WinnerNameForm } from '../winnernameform/winnerNameForm';
 
 export interface MatchOverlayProps {
   awaitingStart: boolean;
   leftScore: number;
   rightScore: number;
   winScore: number;
-  onBegin: () => void;
+  onBeginMatch: () => void;
   difficulty: 'easy' | 'normal' | 'hard';
   onChangeDifficulty: (d: 'easy' | 'normal' | 'hard') => void;
+  winnerSide?: 'left' | 'right';
+  winnerNeedsName?: boolean;
+  onSubmitWinner?: (name: string) => void;
 }
 
 export const MatchOverlay: React.FC<MatchOverlayProps> = ({
@@ -17,9 +21,12 @@ export const MatchOverlay: React.FC<MatchOverlayProps> = ({
   leftScore,
   rightScore,
   winScore,
-  onBegin,
+  onBeginMatch,
   difficulty,
   onChangeDifficulty,
+  winnerSide,
+  winnerNeedsName,
+  onSubmitWinner,
 }) => {
   if (!awaitingStart) return null;
   const finished = leftScore >= winScore || rightScore >= winScore;
@@ -33,9 +40,20 @@ export const MatchOverlay: React.FC<MatchOverlayProps> = ({
             <p>
               Final Score {leftScore} – {rightScore} (first to {winScore})
             </p>
-            <button onClick={onBegin} autoFocus>
-              Next Match
-            </button>
+            {winnerNeedsName && winnerSide ? (
+              <WinnerNameForm
+                winnerSide={winnerSide}
+                autoFocus
+                onSubmit={(name: string) => {
+                  onSubmitWinner?.(name);
+                  onBeginMatch();
+                }}
+              />
+            ) : (
+              <button onClick={onBeginMatch} autoFocus>
+                Next Match
+              </button>
+            )}
           </>
         ) : (
           <>
@@ -52,7 +70,7 @@ export const MatchOverlay: React.FC<MatchOverlayProps> = ({
                 <strong>Tip:</strong> Change difficulty above before starting.
               </li>
             </ul>
-            <button onClick={onBegin} autoFocus>
+            <button onClick={onBeginMatch} autoFocus>
               Start Match
             </button>
           </>

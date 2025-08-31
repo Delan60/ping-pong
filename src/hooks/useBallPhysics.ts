@@ -150,7 +150,8 @@ export function useBallPhysics(
       const fullyPastLeft = nextX + radius < 0;
       const fullyPastRight = nextX - radius > PLAYFIELD_WIDTH_PX;
       if (fullyPastLeft || fullyPastRight) {
-        scheduleScoreReset(fullyPastLeft ? 'left' : 'right');
+        // If the ball fully passed the left side, it is a score for the right player
+        scheduleScoreReset(fullyPastLeft ? 'right' : 'left');
         rafIdRef.current = requestAnimationFrame(step);
         return;
       }

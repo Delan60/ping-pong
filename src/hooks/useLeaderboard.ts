@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { addEntry as persistAdd, clearLeaderboard, loadLeaderboard } from '../localstorage/storage';
 import type { LeaderboardEntry } from '../localstorage/types';
 
@@ -7,6 +7,7 @@ export interface UseLeaderboardApi {
   addMatch: (data: Omit<LeaderboardEntry, 'id' | 'createdAt'>) => void;
   clear: () => void;
   refreshedAt: number;
+  lowestScoreDiff: number; // smallest (score - opponentScore) among entries
 }
 
 function makeId() {
@@ -48,5 +49,15 @@ export function useLeaderboard(): UseLeaderboardApi {
     setRefreshedAt(Date.now());
   }, []);
 
-  return { entries, addMatch, clear, refreshedAt };
+  const lowestScoreDiff = useMemo(() => {
+    if (entries.length === 0) return 0;
+    let min = null;
+    for (const e of entries) {
+      const diff = e.score - e.opponentScore;
+      if (min == null || diff < min) min = diff;
+    }
+    return min === null ? 0 : min;
+  }, [entries]);
+
+  return { entries, addMatch, clear, refreshedAt, lowestScoreDiff };
 }

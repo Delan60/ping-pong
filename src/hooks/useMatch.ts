@@ -7,7 +7,6 @@ export interface AddMatchPayload {
   opponentScore: number;
   durationMs: number;
 }
-export type AddMatchFn = (data: AddMatchPayload) => void;
 
 export interface UseMatchResult {
   leftScore: number;
@@ -16,14 +15,15 @@ export interface UseMatchResult {
   paused: boolean; // convenience alias of awaitingStart
   handleScore: (side: 'left' | 'right') => void; // pass to ball physics onScore
   beginMatch: () => void; // user interaction to start / next match
+  winnerSide?: 'left' | 'right';
+  lastMatchDurationMs?: number;
 }
 
 interface UseMatchOptions {
   winScore: number;
-  addMatch: AddMatchFn;
 }
 
-export function useMatch({ winScore, addMatch }: UseMatchOptions): UseMatchResult {
+export function useMatch({ winScore }: UseMatchOptions): UseMatchResult {
   const [leftScore, setLeftScore] = useState(0);
   const [rightScore, setRightScore] = useState(0);
   const [awaitingStart, setAwaitingStart] = useState(true);
@@ -41,28 +41,29 @@ export function useMatch({ winScore, addMatch }: UseMatchOptions): UseMatchResul
   );
 
   // Win detection
+  const [winnerSide, setWinnerSide] = useState<'left' | 'right' | undefined>();
+  const [lastMatchDurationMs, setLastMatchDurationMs] = useState<number | undefined>();
+
   useEffect(() => {
     if (awaitingStart || matchFinishedRef.current) return;
     if (leftScore >= winScore || rightScore >= winScore) {
       matchFinishedRef.current = true;
-      const durationMs = Date.now() - matchStartRef.current;
+      // Capture duration for later use when name is submitted (consumer can recompute if needed)
+      // const durationMs = Date.now() - matchStartRef.current;
       const leftWon = leftScore > rightScore;
-      addMatch({
-        player: leftWon ? 'Left' : 'Right',
-        opponent: leftWon ? 'Right' : 'Left',
-        score: leftWon ? leftScore : rightScore,
-        opponentScore: leftWon ? rightScore : leftScore,
-        durationMs,
-      });
+      setWinnerSide(leftWon ? 'left' : 'right');
+      setLastMatchDurationMs(Date.now() - matchStartRef.current);
       setAwaitingStart(true); // show overlay
     }
-  }, [leftScore, rightScore, winScore, addMatch, awaitingStart]);
+  }, [leftScore, rightScore, winScore, awaitingStart]);
 
   const beginMatch = useCallback(() => {
     setLeftScore(0);
     setRightScore(0);
     matchStartRef.current = Date.now();
     matchFinishedRef.current = false;
+    setWinnerSide(undefined);
+    setLastMatchDurationMs(undefined);
     setAwaitingStart(false);
   }, []);
 
@@ -73,5 +74,7 @@ export function useMatch({ winScore, addMatch }: UseMatchOptions): UseMatchResul
     paused: awaitingStart,
     handleScore,
     beginMatch,
+    winnerSide,
+    lastMatchDurationMs,
   };
 }
