@@ -8,6 +8,8 @@ import {
   PLAYFIELD_WIDTH_PX,
 } from '../gameConfig';
 import type { PaddleHandle } from '../components/paddle/paddle';
+import { getRandomSign } from '../utils/getRandomSign';
+import { hasBallCollidedWithPaddle } from '../utils/hasBallCollidedWithPaddle';
 
 const INITIAL_DIRECTION = { x: 0.7, y: 0.3 };
 
@@ -35,37 +37,38 @@ export function useBallPhysics(
   options: UseBallPhysicsOptions = {}
 ): BallPhysicsState {
   const { onScore, autoResetDelayMs = 800, paused = false, difficulty = 1 } = options;
-  // Render-state (derived from refs each frame)
-  const [renderX, setRenderX] = useState(PLAYFIELD_WIDTH_PX / 2);
-  const [renderY, setRenderY] = useState(PLAYFIELD_HEIGHT_PX / 2);
-  // Authoritative mutable refs
-  const xRef = useRef(renderX);
-  const yRef = useRef(renderY);
+  // Single position state (source of truth for rendering)
+  const [position, setPositionState] = useState({
+    x: PLAYFIELD_WIDTH_PX / 2,
+    y: PLAYFIELD_HEIGHT_PX / 2,
+  });
+
+  // Mutable ref for physics integration
+  const posRef = useRef(position);
   const velocityRef = useRef({
-    vx: INITIAL_DIRECTION.x * BALL_INITIAL_SPEED_PX_PER_SEC * difficulty,
-    vy: INITIAL_DIRECTION.y * BALL_INITIAL_SPEED_PX_PER_SEC * difficulty,
+    vx: getRandomSign() * INITIAL_DIRECTION.x * BALL_INITIAL_SPEED_PX_PER_SEC * difficulty,
+    vy: getRandomSign() * INITIAL_DIRECTION.y * BALL_INITIAL_SPEED_PX_PER_SEC * difficulty,
   });
   const prevTsRef = useRef<number | null>(null);
   const rafIdRef = useRef<number | null>(null);
   const radius = BALL_SIZE_PX / 2;
   const awaitingResetRef = useRef(false);
 
+  const seedVelocity = useCallback(
+    () => {
+      velocityRef.current.vx =
+        getRandomSign() * INITIAL_DIRECTION.x * BALL_INITIAL_SPEED_PX_PER_SEC * difficulty;
+      velocityRef.current.vy =
+        getRandomSign() * INITIAL_DIRECTION.y * BALL_INITIAL_SPEED_PX_PER_SEC * difficulty;
+    },
+    [difficulty]
+  );
+
   const reset = useCallback(() => {
-    xRef.current = PLAYFIELD_WIDTH_PX / 2;
-    yRef.current = PLAYFIELD_HEIGHT_PX / 2;
-    velocityRef.current.vx =
-      INITIAL_DIRECTION.x *
-      BALL_INITIAL_SPEED_PX_PER_SEC *
-      difficulty *
-      (Math.random() < 0.5 ? -1 : 1);
-    velocityRef.current.vy =
-      INITIAL_DIRECTION.y *
-      BALL_INITIAL_SPEED_PX_PER_SEC *
-      difficulty *
-      (Math.random() < 0.5 ? -1 : 1);
-    setRenderX(xRef.current);
-    setRenderY(yRef.current);
-  }, [difficulty]);
+    posRef.current = { x: PLAYFIELD_WIDTH_PX / 2, y: PLAYFIELD_HEIGHT_PX / 2 };
+    seedVelocity();
+    setPositionState(posRef.current);
+  }, [seedVelocity]);
 
   useEffect(() => {
     const MAX_DT = 0.05; // cap to avoid huge leaps after tab inactive
@@ -82,17 +85,19 @@ export function useBallPhysics(
       }
 
       let { vx, vy } = velocityRef.current;
-      let nx = xRef.current + vx * dt;
-      let ny = yRef.current + vy * dt;
+      let nextX = posRef.current.x + vx * dt;
+      let nextY = posRef.current.y + vy * dt;
       let collided = false;
 
       // Vertical walls
-      if (ny - radius < 0) {
-        ny = radius;
+      if (nextY - radius < 0) {
+        // Bottom collision
+        nextY = radius;
         vy = Math.abs(vy);
         collided = true;
-      } else if (ny + radius > PLAYFIELD_HEIGHT_PX) {
-        ny = PLAYFIELD_HEIGHT_PX - radius;
+      } else if (nextY + radius > PLAYFIELD_HEIGHT_PX) {
+        // Top collision
+        nextY = PLAYFIELD_HEIGHT_PX - radius;
         vy = -Math.abs(vy);
         collided = true;
       }
@@ -100,67 +105,62 @@ export function useBallPhysics(
       const leftPaddle = leftPaddleRef.current?.getState();
       const rightPaddle = rightPaddleRef.current?.getState();
 
+      const headingLeft = vx < 0;
+      const headingRight = vx > 0;
+
       // Left paddle collision (check crossing boundary to reduce tunneling)
-      if (vx < 0 && nx - radius <= PADDLE_WIDTH_PX) {
-        if (leftPaddle && Math.abs(ny - leftPaddle.centerY) <= PADDLE_HEIGHT_PX / 2 + radius) {
-          nx = PADDLE_WIDTH_PX + radius;
+      if (headingLeft && nextX - radius <= PADDLE_WIDTH_PX) {
+        if (leftPaddle && hasBallCollidedWithPaddle(nextY, leftPaddle.centerY, PADDLE_HEIGHT_PX, radius)) {
+          nextX = PADDLE_WIDTH_PX + radius;
           vx = Math.abs(vx);
           collided = true;
         }
       }
       // Right paddle collision
       const rightPaddleX = PLAYFIELD_WIDTH_PX - PADDLE_WIDTH_PX;
-      if (vx > 0 && nx + radius >= rightPaddleX) {
-        if (rightPaddle && Math.abs(ny - rightPaddle.centerY) <= PADDLE_HEIGHT_PX / 2 + radius) {
-          nx = rightPaddleX - radius;
+      if (headingRight && nextX + radius >= rightPaddleX) {
+        if (rightPaddle && hasBallCollidedWithPaddle(nextY, rightPaddle.centerY, PADDLE_HEIGHT_PX, radius)) {
+          nextX = rightPaddleX - radius;
           vx = -Math.abs(vx);
           collided = true;
         }
       }
 
-      // Scoring (ball fully crosses boundary) OR bounce if only contacting edge
-      const fullyPastLeft = nx + radius < 0;
-      const fullyPastRight = nx - radius > PLAYFIELD_WIDTH_PX;
       if (awaitingResetRef.current) {
         // Just wait until reset fires
         rafIdRef.current = requestAnimationFrame(step);
         return;
       }
-      if (fullyPastLeft) {
+
+      // Scoring (ball fully crosses boundary) OR bounce if only contacting edge
+      const scheduleScoreReset = (scoringSide: 'left' | 'right') => {
         awaitingResetRef.current = true;
-        onScore?.('right');
+        onScore?.(scoringSide);
         velocityRef.current.vx = 0;
-        velocityRef.current.vy = 0; // freeze
+        velocityRef.current.vy = 0; // freeze during pause
         setTimeout(() => {
           reset();
           awaitingResetRef.current = false;
         }, autoResetDelayMs);
-        rafIdRef.current = requestAnimationFrame(step);
-        return;
-      }
-      if (fullyPastRight) {
-        awaitingResetRef.current = true;
-        onScore?.('left');
-        velocityRef.current.vx = 0;
-        velocityRef.current.vy = 0;
-        setTimeout(() => {
-          reset();
-          awaitingResetRef.current = false;
-        }, autoResetDelayMs);
+      };
+
+      const fullyPastLeft = nextX + radius < 0;
+      const fullyPastRight = nextX - radius > PLAYFIELD_WIDTH_PX;
+      if (fullyPastLeft || fullyPastRight) {
+        scheduleScoreReset(fullyPastLeft ? 'left' : 'right');
         rafIdRef.current = requestAnimationFrame(step);
         return;
       }
 
       if (collided) {
+        // Velocity changes only if collided
         velocityRef.current.vx = vx;
         velocityRef.current.vy = vy;
       }
 
-      xRef.current = nx;
-      yRef.current = ny;
+      posRef.current = { x: nextX, y: nextY };
       // Push to React state (could throttle if needed)
-      setRenderX(nx);
-      setRenderY(ny);
+      setPositionState(posRef.current);
 
       rafIdRef.current = requestAnimationFrame(step);
     };
@@ -170,19 +170,9 @@ export function useBallPhysics(
     };
   }, [leftPaddleRef, rightPaddleRef, radius, onScore, autoResetDelayMs, paused, difficulty, reset]);
 
-  // Rescale velocity if difficulty changes
-  useEffect(() => {
-    velocityRef.current.vx =
-      Math.sign(velocityRef.current.vx) *
-      Math.abs(INITIAL_DIRECTION.x * BALL_INITIAL_SPEED_PX_PER_SEC * difficulty);
-    velocityRef.current.vy =
-      Math.sign(velocityRef.current.vy) *
-      Math.abs(INITIAL_DIRECTION.y * BALL_INITIAL_SPEED_PX_PER_SEC * difficulty);
-  }, [difficulty]);
-
   return {
-    x: renderX,
-    y: renderY,
+    x: position.x,
+    y: position.y,
     vx: velocityRef.current.vx,
     vy: velocityRef.current.vy,
     radius,
@@ -190,11 +180,9 @@ export function useBallPhysics(
       velocityRef.current.vx = nvx;
       velocityRef.current.vy = nvy;
     },
-    setPosition: (nx, ny) => {
-      xRef.current = nx;
-      yRef.current = ny;
-      setRenderX(nx);
-      setRenderY(ny);
+    setPosition: (x, y) => {
+      posRef.current = { x, y };
+      setPositionState(posRef.current);
     },
     reset,
   };
