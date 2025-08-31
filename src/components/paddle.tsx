@@ -3,55 +3,68 @@ import { useKeyHold } from '../hooks/useKeyHold';
 import styles from './paddle.module.css';
 import { PLAYFIELD_HEIGHT_PX, PADDLE_HEIGHT_PX, PADDLE_SPEED_PX_PER_SEC } from '../gameConfig';
 
-export interface PaddleHandle { getState(): { centerY: number; side: 'left' | 'right' }; }
-
-export interface PaddleProps {
-	side: 'left' | 'right';
-	ariaLabel: string;
-	keyMapping?: { up: string[]; down: string[] };
+export interface PaddleHandle {
+  getState(): { centerY: number; side: 'left' | 'right' };
 }
 
-export const Paddle = forwardRef<PaddleHandle, PaddleProps>(function Paddle({ side, ariaLabel, keyMapping }, ref) {
-	const [paddleCenterY, setPaddleCenterY] = useState(PLAYFIELD_HEIGHT_PX / 2);
-	const keyStateRef = useKeyHold(keyMapping);
-	const previousFrameTimestampRef = useRef<number | null>(null);
-	const animationFrameIdRef = useRef<number | null>(null);
+export interface PaddleProps {
+  side: 'left' | 'right';
+  ariaLabel: string;
+  keyMapping?: { up: string[]; down: string[] };
+}
 
-	const minimumCenterY = PADDLE_HEIGHT_PX / 2;
-	const maximumCenterY = PLAYFIELD_HEIGHT_PX - PADDLE_HEIGHT_PX / 2;
-	const clampCenterY = useCallback((value: number) => Math.min(maximumCenterY, Math.max(minimumCenterY, value)), [maximumCenterY, minimumCenterY]);
+export const Paddle = forwardRef<PaddleHandle, PaddleProps>(function Paddle(
+  { side, ariaLabel, keyMapping },
+  ref
+) {
+  const [paddleCenterY, setPaddleCenterY] = useState(PLAYFIELD_HEIGHT_PX / 2);
+  const keyStateRef = useKeyHold(keyMapping);
+  const previousFrameTimestampRef = useRef<number | null>(null);
+  const animationFrameIdRef = useRef<number | null>(null);
 
-	useEffect(() => {
-		const step = (timestamp: number) => {
-			if (previousFrameTimestampRef.current == null) previousFrameTimestampRef.current = timestamp;
-			const deltaSeconds = (timestamp - previousFrameTimestampRef.current) / 1000;
-			previousFrameTimestampRef.current = timestamp;
+  const minimumCenterY = PADDLE_HEIGHT_PX / 2;
+  const maximumCenterY = PLAYFIELD_HEIGHT_PX - PADDLE_HEIGHT_PX / 2;
+  const clampCenterY = useCallback(
+    (value: number) => Math.min(maximumCenterY, Math.max(minimumCenterY, value)),
+    [maximumCenterY, minimumCenterY]
+  );
 
-			let movementDelta = 0;
-			const { up, down } = keyStateRef.current;
-			if (up && !down) movementDelta = -PADDLE_SPEED_PX_PER_SEC * deltaSeconds;
-			else if (down && !up) movementDelta = PADDLE_SPEED_PX_PER_SEC * deltaSeconds;
+  useEffect(() => {
+    const step = (timestamp: number) => {
+      if (previousFrameTimestampRef.current == null) previousFrameTimestampRef.current = timestamp;
+      const deltaSeconds = (timestamp - previousFrameTimestampRef.current) / 1000;
+      previousFrameTimestampRef.current = timestamp;
 
-			if (movementDelta !== 0) {
-				setPaddleCenterY(prev => clampCenterY(prev + movementDelta));
-			}
+      let movementDelta = 0;
+      const { up, down } = keyStateRef.current;
+      if (up && !down) movementDelta = -PADDLE_SPEED_PX_PER_SEC * deltaSeconds;
+      else if (down && !up) movementDelta = PADDLE_SPEED_PX_PER_SEC * deltaSeconds;
 
-			animationFrameIdRef.current = requestAnimationFrame(step);
-		};
-		animationFrameIdRef.current = requestAnimationFrame(step);
-		return () => { if (animationFrameIdRef.current) cancelAnimationFrame(animationFrameIdRef.current); };
-	}, [keyStateRef, clampCenterY]);
+      if (movementDelta !== 0) {
+        setPaddleCenterY((prev) => clampCenterY(prev + movementDelta));
+      }
 
-	const topPercent = (paddleCenterY / PLAYFIELD_HEIGHT_PX) * 100;
-	const edgeClass = side === 'left' ? styles.leftEdge : styles.rightEdge;
-	useImperativeHandle(ref, () => ({ getState: () => ({ centerY: paddleCenterY, side }) }), [paddleCenterY, side]);
+      animationFrameIdRef.current = requestAnimationFrame(step);
+    };
+    animationFrameIdRef.current = requestAnimationFrame(step);
+    return () => {
+      if (animationFrameIdRef.current) cancelAnimationFrame(animationFrameIdRef.current);
+    };
+  }, [keyStateRef, clampCenterY]);
 
-	return (
-		<div
-			className={`${styles.paddle} ${edgeClass}`}
-			style={{ height: `${PADDLE_HEIGHT_PX}px`, top: `${topPercent}%` }}
-			aria-label={ariaLabel}
-			role="presentation"
-		/>
-	);
+  const topPercent = (paddleCenterY / PLAYFIELD_HEIGHT_PX) * 100;
+  const edgeClass = side === 'left' ? styles.leftEdge : styles.rightEdge;
+  useImperativeHandle(ref, () => ({ getState: () => ({ centerY: paddleCenterY, side }) }), [
+    paddleCenterY,
+    side,
+  ]);
+
+  return (
+    <div
+      className={`${styles.paddle} ${edgeClass}`}
+      style={{ height: `${PADDLE_HEIGHT_PX}px`, top: `${topPercent}%` }}
+      aria-label={ariaLabel}
+      role="presentation"
+    />
+  );
 });

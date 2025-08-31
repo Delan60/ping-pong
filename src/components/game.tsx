@@ -13,9 +13,13 @@ export const Game: FC = () => {
   const rightPaddleRef = useRef<PaddleHandle>(null);
   const [leftScore, setLeftScore] = useState(0);
   const [rightScore, setRightScore] = useState(0);
-  const handleScore = useCallback((side: 'left' | 'right') => {
-    if (side === 'left') setLeftScore(s => s + 1); else setRightScore(s => s + 1);
-  }, [setLeftScore, setRightScore]);
+  const handleScore = useCallback(
+    (side: 'left' | 'right') => {
+      if (side === 'left') setLeftScore((s) => s + 1);
+      else setRightScore((s) => s + 1);
+    },
+    [setLeftScore, setRightScore]
+  );
 
   const ball = useBallPhysics(leftPaddleRef, rightPaddleRef, {
     onScore: handleScore,
@@ -28,7 +32,12 @@ export const Game: FC = () => {
         <Scoreboard left={leftScore} right={rightScore} />
         <Layout>
           <Paddle ref={leftPaddleRef} side="left" ariaLabel="left player paddle" />
-          <Paddle ref={rightPaddleRef} side="right" ariaLabel="right player paddle" keyMapping={{ up: ['i','I'], down: ['k','K'] }} />
+          <Paddle
+            ref={rightPaddleRef}
+            side="right"
+            ariaLabel="right player paddle"
+            keyMapping={{ up: ['i', 'I'], down: ['k', 'K'] }}
+          />
           <Traces x={ball.x} y={ball.y} />
           <Ball x={ball.x} y={ball.y} />
         </Layout>

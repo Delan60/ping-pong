@@ -25,7 +25,7 @@ export const Traces: React.FC<TracesProps> = ({
   const dots = useBallTrail(x, y, { intervalMs, maxDots, fadeMs });
   return (
     <>
-      {dots.map(d => {
+      {dots.map((d) => {
         const lifeRatio = d.age / fadeMs; // 0..1
         const size = BALL_SIZE_PX * (1 - lifeRatio * shrinkFactor);
         const opacity = Math.max(0, baseOpacity * (1 - lifeRatio));

@@ -1,6 +1,6 @@
-* Added a layout
-    * To consider -> resizing the screen with below defined height
-* Added paddle, introduced movement
-    * To consider -> moving paddle with a mouse instead
-* Added second paddle
-    * to consider, introducing a new keymap vs player vs AI
+- Added a layout
+  - To consider -> resizing the screen with below defined height
+- Added paddle, introduced movement
+  - To consider -> moving paddle with a mouse instead
+- Added second paddle
+  - to consider, introducing a new keymap vs player vs AI

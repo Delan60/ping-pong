@@ -1,13 +1,18 @@
 import { useEffect, useRef } from 'react';
 
 /** Shape of directional key state returned by the hook. */
-export interface DirectionalKeyState { up: boolean; down: boolean; left?: boolean; right?: boolean }
+export interface DirectionalKeyState {
+  up: boolean;
+  down: boolean;
+  left?: boolean;
+  right?: boolean;
+}
 
 // Default key mappings for vertical movement. Keeping them centralized avoids
 // repeating arrays at every call site and makes future remapping trivial.
 const DEFAULT_KEYS: { up: string[]; down: string[] } = {
-  up: ["ArrowUp", "w", "W"],
-  down: ["ArrowDown", "s", "S"],
+  up: ['ArrowUp', 'w', 'W'],
+  down: ['ArrowDown', 's', 'S'],
 };
 
 /**
@@ -23,12 +28,12 @@ export function useKeyHold(customKeys?: { up: string[]; down: string[] }) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-  if (keys.up.includes(e.key)) stateRef.current.up = true;
-  if (keys.down.includes(e.key)) stateRef.current.down = true;
+      if (keys.up.includes(e.key)) stateRef.current.up = true;
+      if (keys.down.includes(e.key)) stateRef.current.down = true;
     };
     const handleKeyUp = (e: KeyboardEvent) => {
-  if (keys.up.includes(e.key)) stateRef.current.up = false;
-  if (keys.down.includes(e.key)) stateRef.current.down = false;
+      if (keys.up.includes(e.key)) stateRef.current.up = false;
+      if (keys.down.includes(e.key)) stateRef.current.down = false;
     };
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);

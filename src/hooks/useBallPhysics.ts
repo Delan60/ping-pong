@@ -1,11 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
-import { BALL_INITIAL_SPEED_PX_PER_SEC, BALL_SIZE_PX, PADDLE_HEIGHT_PX, PADDLE_WIDTH_PX, PLAYFIELD_HEIGHT_PX, PLAYFIELD_WIDTH_PX } from '../gameConfig';
+import {
+  BALL_INITIAL_SPEED_PX_PER_SEC,
+  BALL_SIZE_PX,
+  PADDLE_HEIGHT_PX,
+  PADDLE_WIDTH_PX,
+  PLAYFIELD_HEIGHT_PX,
+  PLAYFIELD_WIDTH_PX,
+} from '../gameConfig';
 import type { PaddleHandle } from '../components/paddle';
 
 const INITIAL_DIRECTION = { x: 0.7, y: 0.3 };
 
 export interface BallPhysicsState {
-  x: number; y: number; vx: number; vy: number; radius: number;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  radius: number;
   setVelocity: (vx: number, vy: number) => void;
   setPosition: (x: number, y: number) => void;
   reset: () => void;
@@ -40,8 +51,10 @@ export function useBallPhysics(
   const reset = () => {
     xRef.current = PLAYFIELD_WIDTH_PX / 2;
     yRef.current = PLAYFIELD_HEIGHT_PX / 2;
-    velocityRef.current.vx = INITIAL_DIRECTION.x * BALL_INITIAL_SPEED_PX_PER_SEC * (Math.random() < 0.5 ? -1 : 1);
-    velocityRef.current.vy = INITIAL_DIRECTION.y * BALL_INITIAL_SPEED_PX_PER_SEC * (Math.random() < 0.5 ? -1 : 1);
+    velocityRef.current.vx =
+      INITIAL_DIRECTION.x * BALL_INITIAL_SPEED_PX_PER_SEC * (Math.random() < 0.5 ? -1 : 1);
+    velocityRef.current.vy =
+      INITIAL_DIRECTION.y * BALL_INITIAL_SPEED_PX_PER_SEC * (Math.random() < 0.5 ? -1 : 1);
     setRenderX(xRef.current);
     setRenderY(yRef.current);
   };
@@ -60,8 +73,15 @@ export function useBallPhysics(
       let collided = false;
 
       // Vertical walls
-      if (ny - radius < 0) { ny = radius; vy = Math.abs(vy); collided = true; }
-      else if (ny + radius > PLAYFIELD_HEIGHT_PX) { ny = PLAYFIELD_HEIGHT_PX - radius; vy = -Math.abs(vy); collided = true; }
+      if (ny - radius < 0) {
+        ny = radius;
+        vy = Math.abs(vy);
+        collided = true;
+      } else if (ny + radius > PLAYFIELD_HEIGHT_PX) {
+        ny = PLAYFIELD_HEIGHT_PX - radius;
+        vy = -Math.abs(vy);
+        collided = true;
+      }
 
       const leftPaddle = leftPaddleRef.current?.getState();
       const rightPaddle = rightPaddleRef.current?.getState();
@@ -69,13 +89,19 @@ export function useBallPhysics(
       // Left paddle collision (check crossing boundary to reduce tunneling)
       if (vx < 0 && nx - radius <= PADDLE_WIDTH_PX) {
         if (leftPaddle && Math.abs(ny - leftPaddle.centerY) <= PADDLE_HEIGHT_PX / 2 + radius) {
-          nx = PADDLE_WIDTH_PX + radius; vx = Math.abs(vx); collided = true; }
+          nx = PADDLE_WIDTH_PX + radius;
+          vx = Math.abs(vx);
+          collided = true;
+        }
       }
       // Right paddle collision
       const rightPaddleX = PLAYFIELD_WIDTH_PX - PADDLE_WIDTH_PX;
       if (vx > 0 && nx + radius >= rightPaddleX) {
         if (rightPaddle && Math.abs(ny - rightPaddle.centerY) <= PADDLE_HEIGHT_PX / 2 + radius) {
-          nx = rightPaddleX - radius; vx = -Math.abs(vx); collided = true; }
+          nx = rightPaddleX - radius;
+          vx = -Math.abs(vx);
+          collided = true;
+        }
       }
 
       // Scoring (ball fully crosses boundary) OR bounce if only contacting edge
@@ -89,16 +115,24 @@ export function useBallPhysics(
       if (fullyPastLeft) {
         awaitingResetRef.current = true;
         onScore?.('right');
-        velocityRef.current.vx = 0; velocityRef.current.vy = 0; // freeze
-        setTimeout(() => { reset(); awaitingResetRef.current = false; }, autoResetDelayMs);
+        velocityRef.current.vx = 0;
+        velocityRef.current.vy = 0; // freeze
+        setTimeout(() => {
+          reset();
+          awaitingResetRef.current = false;
+        }, autoResetDelayMs);
         rafIdRef.current = requestAnimationFrame(step);
         return;
       }
       if (fullyPastRight) {
         awaitingResetRef.current = true;
         onScore?.('left');
-        velocityRef.current.vx = 0; velocityRef.current.vy = 0;
-        setTimeout(() => { reset(); awaitingResetRef.current = false; }, autoResetDelayMs);
+        velocityRef.current.vx = 0;
+        velocityRef.current.vy = 0;
+        setTimeout(() => {
+          reset();
+          awaitingResetRef.current = false;
+        }, autoResetDelayMs);
         rafIdRef.current = requestAnimationFrame(step);
         return;
       }
@@ -117,7 +151,9 @@ export function useBallPhysics(
       rafIdRef.current = requestAnimationFrame(step);
     };
     rafIdRef.current = requestAnimationFrame(step);
-    return () => { if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current); };
+    return () => {
+      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+    };
   }, [leftPaddleRef, rightPaddleRef, radius, onScore, autoResetDelayMs]);
 
   return {
@@ -126,8 +162,16 @@ export function useBallPhysics(
     vx: velocityRef.current.vx,
     vy: velocityRef.current.vy,
     radius,
-    setVelocity: (nvx, nvy) => { velocityRef.current.vx = nvx; velocityRef.current.vy = nvy; },
-    setPosition: (nx, ny) => { xRef.current = nx; yRef.current = ny; setRenderX(nx); setRenderY(ny); },
+    setVelocity: (nvx, nvy) => {
+      velocityRef.current.vx = nvx;
+      velocityRef.current.vy = nvy;
+    },
+    setPosition: (nx, ny) => {
+      xRef.current = nx;
+      yRef.current = ny;
+      setRenderX(nx);
+      setRenderY(ny);
+    },
     reset,
   };
 }

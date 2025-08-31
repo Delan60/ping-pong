@@ -25,9 +25,19 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({ left, right }) => {
 
   return (
     <div className={styles.scoreboard} aria-label="scoreboard">
-      <span className={`${styles.score} ${leftAnim ? styles.scoreAnim : ''}`} aria-label="left score">{left}</span>
+      <span
+        className={`${styles.score} ${leftAnim ? styles.scoreAnim : ''}`}
+        aria-label="left score"
+      >
+        {left}
+      </span>
       <span className={styles.separator}>:</span>
-      <span className={`${styles.score} ${rightAnim ? styles.scoreAnim : ''}`} aria-label="right score">{right}</span>
+      <span
+        className={`${styles.score} ${rightAnim ? styles.scoreAnim : ''}`}
+        aria-label="right score"
+      >
+        {right}
+      </span>
     </div>
   );
 };
